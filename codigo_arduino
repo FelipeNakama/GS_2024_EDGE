@@ -1,0 +1,96 @@
+#include <Wire.h>
+#include <Adafruit_GFX.h>
+#include <Adafruit_SSD1306.h>
+#include <OneWire.h>
+#include <DallasTemperature.h>
+
+// Data wire is plugged into port 2 on the Arduino
+#define ONE_WIRE_BUS 2
+OneWire oneWire(ONE_WIRE_BUS);
+DallasTemperature sensors(&oneWire);
+
+// HC-SR04 connections
+const int trigPin = 8;
+const int echoPin = 9;
+
+// LDR pin
+const int ldrPin = A0;
+
+// OLED display
+#define SCREEN_WIDTH 128
+#define SCREEN_HEIGHT 64
+Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, -1);
+
+void setup() {
+  // Start the serial communication
+  Serial.begin(9600);
+
+  // Start up the DS18B20 sensor
+  sensors.begin();
+
+  // Set up the HC-SR04 sensor
+  pinMode(trigPin, OUTPUT);
+  pinMode(echoPin, INPUT);
+
+  // Initialize the OLED display
+  if(!display.begin(SSD1306_SWITCHCAPVCC, 0x3C)) {
+    Serial.println(F("SSD1306 allocation failed"));
+    for(;;);
+  }
+  display.display();
+  delay(2000);
+  display.clearDisplay();
+}
+
+void loop() {
+  // Reading temperature from DS18B20
+  sensors.requestTemperatures();
+  float temperatureC = sensors.getTempCByIndex(0);
+  Serial.print("Water Temperature: ");
+  Serial.print(temperatureC);
+  Serial.println(" °C");
+
+  // Reading distance from HC-SR04
+  long duration, distance;
+  digitalWrite(trigPin, LOW);
+  delayMicroseconds(2);
+  digitalWrite(trigPin, HIGH);
+  delayMicroseconds(10);
+  digitalWrite(trigPin, LOW);
+  duration = pulseIn(echoPin, HIGH);
+  distance = (duration / 2) / 29.1;
+  Serial.print("Water Level: ");
+  Serial.print(distance);
+  Serial.println(" cm");
+
+  // Reading light intensity from LDR
+  int ldrValue = analogRead(ldrPin);
+  // Convert LDR value to Lux (assuming a simple linear conversion)
+  // Note: This conversion is a placeholder. Calibration is needed for accurate Lux conversion.
+  float ldrLux = map(ldrValue, 0, 1023, 0, 1000);
+  Serial.print("Water Clarity: ");
+  Serial.print(ldrLux);
+  Serial.println(" Lux");
+
+  // Display readings on OLED
+  display.clearDisplay();
+  display.setTextSize(1);
+  display.setTextColor(SSD1306_WHITE);
+  display.setCursor(0, 0);
+  display.print("Water Temp: ");
+  display.print(temperatureC);
+  display.println(" C");
+  
+  display.print("Water Level: ");
+  display.print(distance);
+  display.println(" cm");
+  
+  display.print("Water Clarity: ");
+  display.print(ldrLux);
+  display.println(" Lux");
+
+  display.display();
+
+  // Delay before next reading
+  delay(2000);
+}
