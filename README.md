@@ -110,3 +110,4 @@ As bibliotecas necessárias podem ser instaladas através do Gerenciador de Bibl
 ---
 
 Segue o link para o video explicativo no youtube: 
+https://youtu.be/7NKR1wELy1M
